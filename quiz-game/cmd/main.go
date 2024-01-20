@@ -5,7 +5,6 @@ import (
 	"encoding/csv"
 	"flag"
 	"fmt"
-	"io"
 	"os"
 	"strings"
 )
@@ -24,33 +23,27 @@ func main() {
 	parser := csv.NewReader(file)
 	scanner := bufio.NewScanner(os.Stdin)
 
+	records, err := parser.ReadAll()
+
+	if err != nil {
+		fmt.Printf("Ran into a problem reading line from file: %v", err)
+	}
+
 	correct := 0
-	questions := 0
 
-	for {
-		record, err := parser.Read()
-		if err == io.EOF {
-			break
-		}
+	for _, record := range records {
+		question, answer := record[0], record[1]
 
-		if err != nil {
-			fmt.Printf("Ran into a problem reading line from file: %v", err)
-		}
-
-		questions += 1
-
-		fmt.Println(record[0])
+		fmt.Println(question)
 		scanner.Scan()
-		in := scanner.Text()
-
-		input := strings.TrimSpace(in)
+		input := strings.TrimSpace(scanner.Text())
 
 		if len(input) == 0 {
 			fmt.Println("Quitting")
 			break
 		}
 
-		if input == record[1] {
+		if input == answer {
 			correct += 1
 		}
 	}
@@ -59,5 +52,5 @@ func main() {
 		fmt.Println("Error: ", scanner.Err())
 	}
 
-	fmt.Printf("You got %v right out of %v", correct, questions)
+	fmt.Printf("You got %v right out of %v", correct, len(records))
 }
