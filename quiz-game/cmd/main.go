@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"encoding/csv"
 	"flag"
 	"fmt"
@@ -10,47 +9,55 @@ import (
 )
 
 func main() {
-	input := flag.String("input", "problems.csv", "path to problems csv")
+	filename := flag.String("input", "problems.csv", "a csv file in the format of 'question,answer'")
+	timeLimit := flag.Int("limit", 30, "the time limit for the quiz in seconds")
 	flag.Parse()
 
-	fmt.Println("word: ", *input)
-
-	file, err := os.Open(*input)
+	file, err := os.Open(*filename)
 	if err != nil {
-		fmt.Printf("File was not opened due to: %v", err)
+		exit(fmt.Sprintf("Failed to open the CSV file: %s\n", *filename))
 	}
 
-	parser := csv.NewReader(file)
-	scanner := bufio.NewScanner(os.Stdin)
+	r := csv.NewReader(file)
 
-	records, err := parser.ReadAll()
-
+	lines, err := r.ReadAll()
 	if err != nil {
-		fmt.Printf("Ran into a problem reading line from file: %v", err)
+		exit("Failed to parse the provided CSV file.")
 	}
+
+	problems := parseLines(lines)
 
 	correct := 0
+	for i, p := range problems {
+		fmt.Printf("Problem #%d: %s = \n", i+1, p.q)
+		var answer string
+		fmt.Scanf("%s\n", &answer)
 
-	for _, record := range records {
-		question, answer := record[0], record[1]
-
-		fmt.Println(question)
-		scanner.Scan()
-		input := strings.TrimSpace(scanner.Text())
-
-		if len(input) == 0 {
-			fmt.Println("Quitting")
-			break
-		}
-
-		if input == answer {
-			correct += 1
+		if answer == p.a {
+			correct++
 		}
 	}
 
-	if scanner.Err() != nil {
-		fmt.Println("Error: ", scanner.Err())
-	}
+	fmt.Printf("You scored %d out of %d.\n", correct, len(problems))
+}
 
-	fmt.Printf("You got %v right out of %v", correct, len(records))
+func parseLines(lines [][]string) []problem {
+	ret := make([]problem, len(lines))
+	for i, line := range lines {
+		ret[i] = problem{
+			a: line[1],
+			q: strings.TrimSpace(line[0]),
+		}
+	}
+	return ret
+}
+
+type problem struct {
+	q string
+	a string
+}
+
+func exit(msg string) {
+	fmt.Println(msg)
+	os.Exit(1)
 }
