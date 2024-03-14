@@ -1,6 +1,7 @@
 package link
 
 import (
+	"fmt"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -11,14 +12,20 @@ type Link struct {
 	text string
 }
 
-func grabText(n *html.Node, s string) string {
+func grabText(n *html.Node) string {
 	if n.Type == html.TextNode {
-		s = s + " " + strings.TrimSpace(n.Data)
+		return n.Data
 	}
+	if n.Type != html.ElementNode {
+		return ""
+	}
+	var ret string
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		s = grabText(c, s)
+		ret += grabText(c)
 	}
-	return strings.TrimSpace(s)
+
+	r := strings.Join(strings.Fields(ret), " ")
+	return r
 }
 
 func grabAnchor(n *html.Node) Link {
@@ -28,7 +35,7 @@ func grabAnchor(n *html.Node) Link {
 			h = a.Val
 		}
 	}
-	t := grabText(n, "")
+	t := grabText(n)
 
 	return Link{
 		href: h,

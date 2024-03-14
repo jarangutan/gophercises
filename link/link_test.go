@@ -1,25 +1,25 @@
 package link
 
 import (
-	"fmt"
 	"os"
 	"strings"
 
 	"golang.org/x/net/html"
+	"golang.org/x/net/html/atom"
 
 	"testing"
 )
 
-func createNode(content string) *html.Node {
-	n, err := html.Parse(strings.NewReader(content))
+func createChildNodes(content string, ctx *html.Node) []*html.Node {
+	n, err := html.ParseFragment(strings.NewReader(content), ctx)
 	if err != nil {
 		panic(err)
 	}
+
 	return n
 }
 
-func createAnchorNode(href string, text string) *html.Node {
-	textNode := createNode(text)
+func createAnchorNode(href string, content string) *html.Node {
 	attrs := make([]html.Attribute, 1)
 	attrs[0] = html.Attribute{
 		Namespace: "",
@@ -27,66 +27,27 @@ func createAnchorNode(href string, text string) *html.Node {
 		Val:       href,
 	}
 
-	return &html.Node{
+	anchor := &html.Node{
 		Parent:      nil,
-		FirstChild:  textNode,
-		LastChild:   textNode,
 		PrevSibling: nil,
 		NextSibling: nil,
 		Type:        html.ElementNode,
-		DataAtom:    0,
+		DataAtom:    atom.A,
 		Data:        "a",
 		Namespace:   "",
 		Attr:        attrs,
 	}
-}
 
-func Test_grabText_JustText(t *testing.T) {
-	expected := "some text"
-	node := createNode(expected)
+	childNodes := createChildNodes(content, anchor)
 
-	result := grabText(node, "")
-	if result != expected {
-		t.Errorf("Result of \"%v\" did not match expected \"%v\"", result, expected)
+	for _, n := range childNodes {
+		anchor.AppendChild(n)
 	}
+
+	return anchor
 }
 
-func Test_grabText_TextInsideSpan(t *testing.T) {
-	expected := "some text inside a span"
-	node := createNode(fmt.Sprintf("<span>%v</span>", expected))
-
-	result := grabText(node, "")
-	if result != expected {
-		t.Errorf("Result of \"%v\" did not match expected \"%v\"", result, expected)
-	}
-}
-
-func Test_grabText_TextInsideSpanWithComments(t *testing.T) {
-	expected := "some text inside a span"
-	node := createNode(fmt.Sprintf("<span><!-- Hello I am a comment :) -->%v</span>", expected))
-
-	result := grabText(node, "")
-	if result != expected {
-		t.Errorf("Result of \"%v\" did not match expected \"%v\"", result, expected)
-	}
-}
-
-func Test_grabText_TextInAnchorSplitBySpan(t *testing.T) {
-	expected := "Gophercises is on Github!"
-	node := createNode(fmt.Sprintf(`<div>
-      <a href="https://github.com/gophercises">
-        Gophercises is on <strong>Github</strong>!
-      </a>
-    <div>
-    `))
-
-	result := grabText(node, "")
-	if result != expected {
-		t.Errorf("Result of \"%v\" did not match expected \"%v\"", result, expected)
-	}
-}
-
-func Test_grabAnchor_JustAnchor(t *testing.T) {
+func Test_grabAnchor_Simple(t *testing.T) {
 	expected := Link{"/other-page", "A link to a page!"}
 	anchorNode := createAnchorNode(expected.href, expected.text)
 
@@ -96,16 +57,11 @@ func Test_grabAnchor_JustAnchor(t *testing.T) {
 	}
 }
 
-func Test_FindAnchors_Simple(t *testing.T) {
+func Test_FindAnchors_Complex(t *testing.T) {
 	expected := Link{"/other-page", "A link to a page!"}
+	content := `<div>A link <span>to a <!--weird--><em>page</em></span></div>!`
 
-	node := createNode(`
-    <html>
-      <body>
-        <a href="/other-page">A link to a page!</a>
-      </body>
-    </html>
-    `)
+	node := createAnchorNode(expected.href, content)
 
 	result := FindAnchors(node, make([]Link, 0))
 	if result[0] != expected {
