@@ -2,6 +2,7 @@ package link
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -95,7 +96,7 @@ func Test_grabAnchor_JustAnchor(t *testing.T) {
 	}
 }
 
-func TestFindSimpleLink(t *testing.T) {
+func Test_FindAnchors_Simple(t *testing.T) {
 	expected := Link{"/other-page", "A link to a page!"}
 
 	node := createNode(`
@@ -107,6 +108,25 @@ func TestFindSimpleLink(t *testing.T) {
     `)
 
 	result := FindAnchors(node, make([]Link, 0))
+	if result[0] != expected {
+		t.Errorf("Result of \"%+v\" did not match expected \"%+v\"", result, expected)
+	}
+}
+
+func Test_FindAnchors_SampleFile(t *testing.T) {
+	f, err := os.Open("ex4.html")
+	if err != nil {
+		panic(err)
+	}
+
+	node, err := html.Parse(f)
+	if err != nil {
+		panic(err)
+	}
+
+	result := FindAnchors(node, make([]Link, 0))
+	expected := Link{"/dog-cat", "dog cat"}
+
 	if result[0] != expected {
 		t.Errorf("Result of \"%+v\" did not match expected \"%+v\"", result, expected)
 	}
