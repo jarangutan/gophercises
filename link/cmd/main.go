@@ -24,7 +24,6 @@ func main() {
 		panic(err)
 	}
 
-	var links []link.Link
-	link.FindA(doc, &links)
-	fmt.Printf("links %v\n", links)
+	links := link.FindAnchors(doc, make([]link.Link, 0))
+	fmt.Printf("links %+v\n", links)
 }

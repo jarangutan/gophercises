@@ -13,7 +13,7 @@ type Link struct {
 
 func grabText(n *html.Node, s string) string {
 	if n.Type == html.TextNode {
-		s = s + " " + n.Data
+		s = s + " " + strings.TrimSpace(n.Data)
 	}
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
 		s = grabText(c, s)

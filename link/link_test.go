@@ -72,10 +72,10 @@ func Test_grabText_TextInsideSpanWithComments(t *testing.T) {
 }
 
 func Test_grabText_TextInAnchorSplitBySpan(t *testing.T) {
-	expected := "some text split by things"
+	expected := "Gophercises is on Github!"
 	node := createNode(fmt.Sprintf(`<div>
-      <a href=\"https://www.youtube.com/watch?v=dQw4w9WgXcQ\">some text split
-        <span>by <!--multiple--></span>things
+      <a href="https://github.com/gophercises">
+        Gophercises is on <strong>Github</strong>!
       </a>
     <div>
     `))
