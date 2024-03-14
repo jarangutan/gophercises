@@ -1,8 +1,8 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
-	"strings"
 
 	"github.com/jarangutan/gophercises/sitemap"
 	"github.com/jarangutan/gophercises/sitemap/link"
@@ -14,7 +14,7 @@ func main() {
 		panic(err)
 	}
 
-	links, err := link.Parse(strings.NewReader(page))
+	links, err := link.Parse(bytes.NewReader(page))
 
 	for _, link := range links {
 		fmt.Printf("%+v\n", link)

@@ -5,14 +5,14 @@ import (
 	"net/http"
 )
 
-func BuildSitemap(url string) (string, error) {
+func BuildSitemap(url string) ([]byte, error) {
 	resp, err := http.Get(url)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
+
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
-	page := string(body[:])
 
-	return page, nil
+	return body, nil
 }
