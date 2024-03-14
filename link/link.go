@@ -1,7 +1,6 @@
 package link
 
 import (
-	"fmt"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -45,7 +44,6 @@ func grabAnchor(n *html.Node) Link {
 
 func FindAnchors(n *html.Node, links []Link) []Link {
 	if n.Type == html.ElementNode && n.Data == "a" {
-		// t := strings.TrimSuffix(n.FirstChild.Data, "\n")
 		links = append(links, grabAnchor(n))
 	}
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
