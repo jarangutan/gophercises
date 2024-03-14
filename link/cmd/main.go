@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jarangutan/gophercises/link"
+	link "github.com/jarangutan/gophercises/link/link"
+	// linkSoln "github.com/jarangutan/gophercises/link/linkSoln"
 	"golang.org/x/net/html"
 )
 
