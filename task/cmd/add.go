@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"4d63.com/homedir"
 	"github.com/spf13/cobra"
 	bolt "go.etcd.io/bbolt"
 )
@@ -25,9 +26,13 @@ var addCmd = &cobra.Command{
 	Short: "Add a new task to your TODO list",
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("add called")
 		s := strings.Join(args, " ")
-		db, errDb := bolt.Open("my.db", 0600, nil)
+		homepath, errHomedir := homedir.Dir()
+		if errHomedir != nil {
+			panic("Home dir not found!")
+		}
+		dbpath := fmt.Sprintf("%s/task.db", homepath)
+		db, errDb := bolt.Open(dbpath, 0600, nil)
 		if errDb != nil {
 			log.Fatal(errDb)
 		}

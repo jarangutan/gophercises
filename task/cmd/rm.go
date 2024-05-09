@@ -14,10 +14,9 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
-// doCmd represents the do command
-var doCmd = &cobra.Command{
-	Use:   "do",
-	Short: "Mark a task on your TODO list as complete",
+var rmCmd = &cobra.Command{
+	Use:   "rm",
+	Short: "Delete a task on your TODO list",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		index, errConv := strconv.Atoi(args[0])
@@ -53,25 +52,20 @@ var doCmd = &cobra.Command{
 					}
 					break
 				}
+				i++
 			}
 			return nil
 		})
 
 		db.Update(func(tx *bolt.Tx) error {
 			b := tx.Bucket([]byte("Tasks"))
-			task.Completed = true
-			taskJson, errMarshal := json.Marshal(task)
-			if errMarshal != nil {
-				log.Fatal(errMarshal)
-				return errMarshal
-			}
-
-			err := b.Put([]byte(key), []byte(taskJson))
+			err := b.Delete(key)
+			fmt.Printf(`You have deleted the "%s" task`, task.Task)
 			return err
 		})
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(doCmd)
+	rootCmd.AddCommand(rmCmd)
 }

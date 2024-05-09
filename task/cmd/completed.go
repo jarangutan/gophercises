@@ -4,19 +4,20 @@ Copyright © 2024 Jose Aranguren
 package cmd
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
 	"4d63.com/homedir"
 	"github.com/spf13/cobra"
 	bolt "go.etcd.io/bbolt"
 )
 
-// listCmd represents the list command
-var listCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List all of your incomplete tasks",
+var completedCmd = &cobra.Command{
+	Use:   "completed",
+	Short: "List all of your completed tasks for today",
 	Run: func(cmd *cobra.Command, args []string) {
 		homepath, errHomedir := homedir.Dir()
 		if errHomedir != nil {
@@ -29,31 +30,34 @@ var listCmd = &cobra.Command{
 		}
 		defer db.Close()
 
-		var tasks []Task
+		now := time.Now()
+		minTime := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).Format(time.RFC3339)
+		maxTime := time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 9999, now.Location()).Format(time.RFC3339)
+
 		db.View(func(tx *bolt.Tx) error {
-			b := tx.Bucket([]byte("Tasks"))
-			b.ForEach(func(k, v []byte) error {
+			c := tx.Bucket([]byte("Tasks")).Cursor()
+			min := []byte(minTime)
+			max := []byte(maxTime)
+
+			fmt.Printf("You have finished the following tasks today:\n")
+			for k, v := c.Seek(min); k != nil && bytes.Compare(k, max) <= 0; k, v = c.Next() {
 				var task Task
 				err := json.Unmarshal(v, &task)
 				if err != nil {
 					log.Fatal("oops", err)
 					return err
 				}
-				tasks = append(tasks, task)
-				return nil
-			})
+				if task.Completed {
+					fmt.Printf("- %s\n", task.Task)
+				}
+			}
 			return nil
 		})
-
-		fmt.Printf("You have the following tasks:\n")
-		for i, v := range tasks {
-			fmt.Printf("%d. %s\n", i+1, v.Task)
-		}
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(listCmd)
+	rootCmd.AddCommand(completedCmd)
 
 	// Here you will define your flags and configuration settings.
 
