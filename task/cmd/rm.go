@@ -4,14 +4,11 @@ Copyright © 2024 Jose Aranguren
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
 	"strconv"
 
-	"4d63.com/homedir"
+	"github.com/jarangutan/gophercises/task/db"
 	"github.com/spf13/cobra"
-	bolt "go.etcd.io/bbolt"
 )
 
 var rmCmd = &cobra.Command{
@@ -19,50 +16,33 @@ var rmCmd = &cobra.Command{
 	Short: "Delete a task on your TODO list",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		index, errConv := strconv.Atoi(args[0])
-		if errConv != nil {
-			log.Fatal(errConv)
+		index, err := strconv.Atoi(args[0])
+		if err != nil {
+			fmt.Printf("%v is not a number.\n", args[0])
 		}
 
-		homepath, errHomedir := homedir.Dir()
-		if errHomedir != nil {
-			panic("Home dir not found!")
+		key, err := db.GetKeyByIndex(index)
+		if err != nil {
+			fmt.Println("Something went wrong:", err)
+			return
 		}
-		dbpath := fmt.Sprintf("%s/task.db", homepath)
-		db, errDb := bolt.Open(dbpath, 0600, nil)
-		if errDb != nil {
-			log.Fatal(errDb)
+		if key == nil {
+			fmt.Printf("No task found with an index of %d.\n", index)
+			return
 		}
-		defer db.Close()
 
-		var key []byte
-		var task Task
-		i := 0
-		db.View(func(tx *bolt.Tx) error {
-			b := tx.Bucket([]byte("Tasks"))
-			c := b.Cursor()
+		task, err := db.GetTask(key)
+		if err != nil {
+			fmt.Println("Something went wrong:", err)
+			return
+		}
 
-			for k, v := c.First(); k != nil; k, v = c.Next() {
-				if i == index-1 {
-					key = k
-					err := json.Unmarshal(v, &task)
-					if err != nil {
-						log.Fatal("oops", err)
-						return err
-					}
-					break
-				}
-				i++
-			}
-			return nil
-		})
+		err = db.DeleteTask(key)
+		if err != nil {
+			fmt.Println("Something went wrong:", err)
+		}
 
-		db.Update(func(tx *bolt.Tx) error {
-			b := tx.Bucket([]byte("Tasks"))
-			err := b.Delete(key)
-			fmt.Printf(`You have deleted the "%s" task`, task.Task)
-			return err
-		})
+		fmt.Printf("You have deleted the \"%s\" task.\n", task.Task)
 	},
 }
 
