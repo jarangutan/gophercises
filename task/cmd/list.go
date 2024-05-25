@@ -20,6 +20,10 @@ var listCmd = &cobra.Command{
 			fmt.Println("Something went wrong:", err)
 			return
 		}
+		if tasks == nil {
+			fmt.Println("You have no tasks yet")
+			return
+		}
 
 		fmt.Printf("You have the following tasks:\n")
 		for i, t := range tasks {
