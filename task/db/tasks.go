@@ -139,6 +139,9 @@ func GetTask(key []byte) (Task, error) {
 }
 
 func GetKeyByIndex(index int) ([]byte, error) {
+	if index <= 0 {
+		return nil, errors.New("Index provided is not a valid index")
+	}
 	var key []byte
 	i := 0
 
