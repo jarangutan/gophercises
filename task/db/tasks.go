@@ -76,7 +76,7 @@ func ListTasks() ([]Task, error) {
 	return tasks, nil
 }
 
-func ListCompletedTasksWithinTimeRange(minTime time.Time, maxTime time.Time) ([]Task, error) {
+func ListTasksWithinTimeRange(minTime time.Time, maxTime time.Time) ([]Task, error) {
 	var tasks []Task
 	err := db.View(func(tx *bolt.Tx) error {
 		c := tx.Bucket([]byte("Tasks")).Cursor()
@@ -89,13 +89,32 @@ func ListCompletedTasksWithinTimeRange(minTime time.Time, maxTime time.Time) ([]
 			if err != nil {
 				return err
 			}
-			if task.Completed {
-				tasks = append(tasks, task)
-			}
+			tasks = append(tasks, task)
 		}
 		return nil
 	})
+	if err != nil {
+		return nil, err
+	}
 	return tasks, err
+}
+
+func FilterTasks(tasks []Task, keepFn func(Task) bool) []Task {
+	var ret []Task
+	for _, task := range tasks {
+		if keepFn(task) {
+			ret = append(ret, task)
+		}
+	}
+	return ret
+}
+
+func FilterCompleted(task Task) bool {
+	return task.Completed == true
+}
+
+func FilterPending(task Task) bool {
+	return task.Completed == false
 }
 
 func GetTask(key []byte) (Task, error) {
@@ -112,6 +131,9 @@ func GetTask(key []byte) (Task, error) {
 		}
 		return nil
 	})
+	if err != nil {
+		return Task{}, err
+	}
 	return task, err
 }
 
@@ -131,6 +153,9 @@ func GetKeyByIndex(index int) ([]byte, error) {
 		}
 		return nil
 	})
+	if err != nil {
+		return nil, err
+	}
 	return key, err
 }
 

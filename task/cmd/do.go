@@ -50,6 +50,7 @@ var doCmd = &cobra.Command{
 				fmt.Println("Something went wrong updating task:", err)
 				return
 			}
+			fmt.Printf("Completed task \"%s\".\n", task.Task)
 		}
 	},
 }

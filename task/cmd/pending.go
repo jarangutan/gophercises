@@ -11,9 +11,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var completedCmd = &cobra.Command{
-	Use:   "completed",
-	Short: "List all of your completed tasks for today",
+var pendingCmd = &cobra.Command{
+	Use:   "pending",
+	Short: "List all of your pending tasks for today",
 	Run: func(cmd *cobra.Command, args []string) {
 		now := time.Now()
 		minTime := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
@@ -25,19 +25,19 @@ var completedCmd = &cobra.Command{
 			return
 		}
 
-		completedTasks := db.FilterTasks(tasks, db.FilterCompleted)
-		if completedTasks == nil {
-			fmt.Println("No tasks have been completed today.")
+		pendingTasks := db.FilterTasks(tasks, db.FilterPending)
+		if pendingTasks == nil {
+			fmt.Println("No tasks are pending today.")
 			return
 		}
 
 		fmt.Printf("You have finished the following tasks today:\n")
-		for _, t := range completedTasks {
+		for _, t := range pendingTasks {
 			fmt.Printf("- %s\n", t.Task)
 		}
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(completedCmd)
+	rootCmd.AddCommand(pendingCmd)
 }
