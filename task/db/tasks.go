@@ -57,6 +57,7 @@ func UpdateTask(key []byte, task Task) error {
 }
 
 func ListTasks() ([]Task, error) {
+	// var initialize slices to nil. nil slice is eq to zero length slice (len 0)
 	var tasks []Task
 	err := db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket(taskBucket)

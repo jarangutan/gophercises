@@ -20,7 +20,7 @@ var listCmd = &cobra.Command{
 			fmt.Println("Something went wrong:", err)
 			return
 		}
-		if tasks == nil {
+		if len(tasks) == 0 {
 			fmt.Println("You have no tasks yet")
 			return
 		}
