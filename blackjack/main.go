@@ -2,9 +2,20 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/jarangutan/gophercises/blackjack/deck"
 )
+
+type Hand []deck.Card
+
+func (h Hand) String() string {
+	strs := make([]string, len(h))
+	for i := range h {
+		strs[i] = h[i].String()
+	}
+	return strings.Join(strs, ", ")
+}
 
 func Score(cards []deck.Card) uint8 {
 	var total uint8 = 0
@@ -28,8 +39,7 @@ func Score(cards []deck.Card) uint8 {
 func Round() {
 	cards := deck.New(deck.Shuffle)
 
-	var player []deck.Card
-	var dealer []deck.Card
+	var player, dealer Hand
 
 	for i := 0; i < 2; i++ {
 		player = append(player, cards[0])
