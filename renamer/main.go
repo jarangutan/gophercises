@@ -47,22 +47,27 @@ func match(filename string, mask string) (string, error) {
 func main() {
 	dirname := flag.String("dir", ".", "JSON file with cyoa story")
 	flag.Parse()
-	fmt.Printf("%s", *dirname)
+	fmt.Printf("Directory '%s'\n", *dirname)
+
+	mask := "XXXXXXXX_NNN.txt"
 
 	err := filepath.Walk(*dirname, func(path string, info fs.FileInfo, err error) error {
-		fmt.Println(info.Name())
+		newName, errMatch := match(info.Name(), mask)
+		if errMatch != nil {
+			return nil
+		}
+		dir := filepath.Dir(path)
+		newPath := filepath.Join(dir, newName)
+		fmt.Printf("mv %s => %s\n", path, newPath)
+		os.Rename(path, newPath)
+
 		return nil
 	})
-	if err != nil {
-		panic(err)
-	}
 
-	filename := "birthday_001.txt"
-	mask := "XXXXXXXX_NNN.txt"
-	newName, err := match(filename, mask)
 	if err != nil {
-		fmt.Println("No match")
+		fmt.Println("Something went wrong")
 		os.Exit(1)
 	}
-	println(newName)
+
+	fmt.Println("Done :-)")
 }
