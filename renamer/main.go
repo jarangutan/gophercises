@@ -45,6 +45,8 @@ func match(filename string, mask string) (string, error) {
 }
 
 func main() {
+	var dry bool
+	flag.BoolVar(&dry, "dry", false, "whether or not this should be a real or dry run")
 	dirname := flag.String("dir", ".", "JSON file with cyoa story")
 	flag.Parse()
 	fmt.Printf("Directory '%s'\n", *dirname)
@@ -52,6 +54,10 @@ func main() {
 	mask := "XXXXXXXX_NNN.txt"
 
 	err := filepath.Walk(*dirname, func(path string, info fs.FileInfo, err error) error {
+		if info.IsDir() {
+			return nil
+		}
+
 		newName, errMatch := match(info.Name(), mask)
 		if errMatch != nil {
 			return nil
@@ -59,8 +65,9 @@ func main() {
 		dir := filepath.Dir(path)
 		newPath := filepath.Join(dir, newName)
 		fmt.Printf("mv %s => %s\n", path, newPath)
-		os.Rename(path, newPath)
-
+		if !dry {
+			os.Rename(path, newPath)
+		}
 		return nil
 	})
 
